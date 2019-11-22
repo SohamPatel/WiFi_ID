@@ -139,35 +139,35 @@ def silence_removal(stream):
 
     m = s_mid[0] * data_per_frame + max_dev_index
 
-    # # Set start_point to m−T/2, where T is total duration
-    # start_point = math.floor(m - (num_packets)/2)
-    # start_point = max(start_point, 0)
+    # Set start_point to m−T/2, where T is total duration
+    start_point = math.floor(m - (num_packets)/2)
+    start_point = max(start_point, 0)
 
-    # # Set end_point to m+T/2, where T is total duration
-    # end_point = math.floor(m + (num_packets)/2)
-    # end_point = min(end_point, num_packets)
+    # Set end_point to m+T/2, where T is total duration
+    end_point = math.floor(m + (num_packets)/2)
+    end_point = min(end_point, num_packets)
 
     # print("Midpoint = ", m)
     # print("Numpackets = ", num_packets)
     # get a 4 second window from mid
-    if num_packets >= 4000:
-        start_point = m - 2000
-        end_point = m + 2000
-        carry = 0
+    # if num_packets >= 4000:
+    #     start_point = m - 2000
+    #     end_point = m + 2000
+    #     carry = 0
 
-        if start_point < 0:
-            carry = abs(start_point)
-            start_point = 0
-            end_point += carry
+    #     if start_point < 0:
+    #         carry = abs(start_point)
+    #         start_point = 0
+    #         end_point += carry
 
-        if end_point >= num_packets:
-            carry = end_point - num_packets
-            end_point = num_packets
-            if (start_point - carry) >= 0:
-                start_point -= carry
-    else:
-        start_point = 0
-        end_point = num_packets
+    #     if end_point >= num_packets:
+    #         carry = end_point - num_packets
+    #         end_point = num_packets
+    #         if (start_point - carry) >= 0:
+    #             start_point -= carry
+    # else:
+    #     start_point = 0
+    #     end_point = num_packets
 
     # print("start = ", start_point)
     # print("end = ", end_point)
@@ -226,7 +226,16 @@ def perform_fft():
     separated_freq = [f for f in freq if (f > 0.002 and f < 0.008)]
     actual_val = ifft(separated_freq)
 
-def extract_features(silenced_data):
+def extract_features():
+    silenced_data = []
+    for subcarrier in range(90):
+        # Create list of CSI stream of one subcarrier
+        ms_data = []
+        for i in range(0, len(antenna)):
+            ms_data.append(antenna[i][subcarrier])
+
+        silenced_data.append(ms_data)
+
 # Feature extraction - all subcarriers
     features = []
     for subcarrier in range(len(silenced_data)):
