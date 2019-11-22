@@ -25,7 +25,6 @@ from sklearn.model_selection import train_test_split
 # matlab_file = './Environment_CSI/converted/log1.mat'
 plt.rcParams['figure.dpi'] = 275
 
-original = [] # Dataset with trimmed csi streams, removed silence
 selected_subcarrier = 0
 
 mat_contents = None
@@ -37,7 +36,8 @@ def load_mat_file(matlab_file):
     antenna = mat_contents['M']
 
 def butterworth():
-# -- APPLY BUTTERWORTH FILTER --
+    # -- APPLY BUTTERWORTH FILTER --
+    filtered_stream = []
     for subcarrier in range(90):
         fs = 0.05        # Sampling Frequency
         flt_ord = 12     # Filter order number
@@ -52,22 +52,24 @@ def butterworth():
         flt_ord = 12
         b, a = butter(flt_ord, 0.05, 'lowpass', analog=False)
         output = filtfilt(b, a, y_axis)
-        original.append(output)
+        filtered_stream.append(output)
+
+    return filtered_stream
 
 
 
-shifted_data = []
-silenced_data = [] # Contains the original csi data for which each subcarrier is trimmed from best_start to best_end
-def silence_removal():
+# shifted_data = []
+def silence_removal(stream):
+    silenced_data = [] # Contains the original csi data for which each subcarrier is trimmed from best_start to best_end
     # -- SILENCE REMOVAL ---
     # Separate the CSI data into a sequence of frames
-    num_packets = len(original[selected_subcarrier])
+    num_packets = len(stream[selected_subcarrier])
     data_per_frame = 50    # 50 ms is the number of data(frequency) in each frame.
     total_num_frames = math.floor(num_packets/data_per_frame)
     frames = []
     for frame in range(int(total_num_frames)):
         cur_index = data_per_frame*frame
-        seq = original[selected_subcarrier][cur_index : cur_index+data_per_frame]
+        seq = stream[selected_subcarrier][cur_index : cur_index+data_per_frame]
         frames.append(seq)
 
     # Calculate energy for each frame
@@ -171,12 +173,13 @@ def silence_removal():
     # print("end = ", end_point)
 
     # Get original data with silence removed
-    trimmed_output = original[selected_subcarrier][start_point:end_point]
+    # trimmed_output = stream[selected_subcarrier][start_point:end_point]
 
-    for untrimmed in original:
+    for untrimmed in stream:
         new_csi = untrimmed[start_point:end_point]
         silenced_data.append(new_csi)
 
+    return silenced_data
 
     # # Plot the silenced CSI data
     # for silenced in silenced_data:
@@ -186,9 +189,9 @@ def silence_removal():
     #     plt.title('Filtered CSI stream (Ord 12) - Silence removed')
 
     # Shift data by mean
-    silenced_csi_signal = silenced_data[selected_subcarrier]
-    mean_silenced = sum(silenced_csi_signal)/len(silenced_csi_signal)
-    shifted_data = [i - mean_silenced for i in silenced_csi_signal]
+    # silenced_csi_signal = silenced_data[selected_subcarrier]
+    # mean_silenced = sum(silenced_csi_signal)/len(silenced_csi_signal)
+    # shifted_data = [i - mean_silenced for i in silenced_csi_signal]
 
     # plt.axhline(y=0, color='r', linestyle='-')
     # plt.plot(shifted_data)
@@ -223,103 +226,9 @@ def perform_fft():
     separated_freq = [f for f in freq if (f > 0.002 and f < 0.008)]
     actual_val = ifft(separated_freq)
 
-# import scipy
-# f = 1000 * np.arange(0, n // 2 + 1) / n; # resampled frequency vector
-# Y = scipy.fftpack.fft(shifted_data)
-# P2 = np.abs(Y / n)
-# P1 = P2[0 : n // 2 + 1]
-# P1[1 : -2] = 2 * P1[1 : -2]
-
-# plt.ylabel("Y")
-# plt.xlabel("f")
-# plt.plot(f, P1)
-
-
-
-# from scipy.stats import kurtosis, skew
-#from skrebate import ReliefF
-#from sklearn.pipeline import make_pipeline
-#from sklearn.ensemble import RandomForestClassifier
-#from sklearn.model_selection import cross_val_score
-
-
-# Feature extraction shit here.
-# num_packets = len(silenced_data[selected_subcarrier])
-# data_per_window = 100
-# total_num_windows = math.floor(num_packets/data_per_window)
-
-# # Split data into windows of 100 packets / 0.1 seconds
-# windows = []
-# for window in range(int(total_num_windows)):
-#     cur_index = data_per_window*window
-#     seq = silenced_data[selected_subcarrier][cur_index : cur_index+data_per_window]
-
-#     windows.append(seq)
-
-# #print(windows)
-
-# features = []
-
-# def getZeroCrossingRate(arr):
-#         my_array = np.array(arr)
-#         #print(my_array)
-#         return float("{0:.2f}".format((((my_array[:-1] * my_array[1:]) < 0).sum())/len(arr)))
-
-# def getMeanCrossingRate(arr):
-#     #print(arr)
-#     return getZeroCrossingRate(np.array(arr) - np.mean(arr))
-
-# For each window, gather its features
-# for each_window in windows:
-#     # time domain features
-
-#     weight_each_window = []
-
-#     mean = sum(each_window) / len(each_window)
-#     max_val = max(each_window)
-#     min_val = min(each_window)
-#     skewness = skew(each_window)
-#     kurtosis_val = kurtosis(each_window)
-#     variance = np.var(each_window)
-
-#     # !!! MEAN crossing rate shit doesnt work !!!
-# #     mean_crossing_rate = getMeanCrossingRate(each_window)
-
-#     weight_each_window.append(mean)
-#     weight_each_window.append(max_val)
-#     weight_each_window.append(min_val)
-#     weight_each_window.append(skewness)
-#     weight_each_window.append(kurtosis_val)
-#     weight_each_window.append(variance)
-# #     weight_each_window.append(mean_crossing_rate)
-
-#     features.append(weight_each_window)
-
-# print(mean)
-# print(max_val)
-# print(min_val)
-# print(skewness)
-# print(kurtosis_val)
-# print(variance)
-# print(mean_crossing_rate)
-
-# print(features)
-# label_len = len(features)
-# labels = np.zeros(label_len)
-
-# print(labels)
-# clf = make_pipeline(ReliefF(n_features_to_select=2, n_neighbors=100),
-#                     RandomForestClassifier(n_estimators=100))
-
-
-# print(clf)
-# print(np.mean(cross_val_score(clf, features, labels)))
-
-
-features = []
-def extract_features():
+def extract_features(silenced_data):
 # Feature extraction - all subcarriers
-
+    features = []
     for subcarrier in range(len(silenced_data)):
         num_packets = len(silenced_data[subcarrier])
         data_per_window = 100
@@ -354,61 +263,9 @@ def extract_features():
             weight_each_window.append(variance)
 
             features.append(weight_each_window)
+    return features
 
-
-# Feature extraction - all subcarriers - shifted data
-# from scipy.stats import kurtosis, skew
-
-# features = []
-
-# for subcarrier in range(len(silenced_data)):
-#     silenced_csi_signal = silenced_data[subcarrier]
-#     mean_silenced = sum(silenced_csi_signal)/len(silenced_csi_signal)
-#     shifted_data = [i - mean_silenced for i in silenced_csi_signal]
-
-#     num_packets = len(shifted_data)
-#     data_per_window = 100
-#     total_num_windows = math.floor(num_packets/data_per_window)
-
-#     # Split data into windows of 100 packets / 0.1 seconds
-#     windows = []
-#     for window in range(int(total_num_windows)):
-#         cur_index = data_per_window*window
-#         seq = shifted_data[cur_index : cur_index+data_per_window]
-
-#         windows.append(seq)
-
-#     # For each window, gather its features
-#     for each_window in windows:
-#         # time domain features
-
-#         weight_each_window = []
-
-#         mean = sum(each_window) / len(each_window)
-#         max_val = max(each_window)
-#         min_val = min(each_window)
-#         skewness = skew(each_window)
-#         kurtosis_val = kurtosis(each_window)
-#         variance = np.var(each_window)
-
-#         weight_each_window.append(mean)
-#         weight_each_window.append(max_val)
-#         weight_each_window.append(min_val)
-#         weight_each_window.append(skewness)
-#         weight_each_window.append(kurtosis_val)
-#         weight_each_window.append(variance)
-
-#         features.append(weight_each_window)
-
-def empty_lists():
-    global original
-    global silenced_data
-    global features
-    original = []
-    silenced_data = []
-    features = []
-
-def export_sushant_data():
+def export_sushant_data(features):
 # Export Sushant data
     sushant_data = {
         'features': features,
@@ -417,9 +274,7 @@ def export_sushant_data():
     with open('sushant_data.json', 'w') as outfile:
         json.dump(sushant_data, outfile, indent=4)
 
-    empty_lists()
-
-def export_soham_data():
+def export_soham_data(features):
     # Export Soham data
     soham_data = {
         'features': features,
@@ -428,9 +283,7 @@ def export_soham_data():
     with open('soham_data.json', 'w') as outfile:
         json.dump(soham_data, outfile, indent=4)
 
-    empty_lists()
-
-def export_vintony_data():
+def export_vintony_data(features):
 # Export Vintony data
     vintony_data = {
         'features': features,
@@ -439,8 +292,6 @@ def export_vintony_data():
 
     with open('vintony_data.json', 'w') as outfile:
         json.dump(vintony_data, outfile, indent=4)
-
-    empty_lists()
 
 
 # # Export Environment data
@@ -489,8 +340,8 @@ def get_data():
         'target': np.empty(data_length)
     }
     csi_data['target'][0:len(sushant['features'])] = 0
-    csi_data['target'][len(sushant['features']): len(soham['features'])] = 1
-    csi_data['target'][len(soham['features']): data_length] = 2
+    csi_data['target'][len(sushant['features']): len(soham['features'])+len(sushant['features'])] = 1
+    csi_data['target'][len(soham['features']) + len(sushant['features']): data_length] = 2
 
     print("Number of 2s: ", len(vintony['features']))
     print("Number of 1s: ", len(soham['features']))
@@ -514,6 +365,6 @@ def get_data():
     y = data['person']
 
     # Split dataset into training set and test set
-    x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3) # 70% training and 30% test
+    # x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3) # 70% training and 30% test
 
-    return x_train, x_test, y_train, y_test
+    return X, y
