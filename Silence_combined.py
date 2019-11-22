@@ -63,7 +63,7 @@ def silence_removal():
     # Separate the CSI data into a sequence of frames
     num_packets = len(original[selected_subcarrier])
     data_per_frame = 50    # 50 ms is the number of data(frequency) in each frame.
-    total_num_frames = math.floor(num_packets/data_per_frame) 
+    total_num_frames = math.floor(num_packets/data_per_frame)
     frames = []
     for frame in range(int(total_num_frames)):
         cur_index = data_per_frame*frame
@@ -121,7 +121,7 @@ def silence_removal():
     for index in s_mid:
         h_mid.append(frames[index])
 
-        
+
     # Calculate the midpoint of the region h_mid which has maximum
     # deviations from the average in h_mid
     high_energy_csi = [item for sublist in h_mid for item in sublist]
@@ -135,15 +135,40 @@ def silence_removal():
             max_dev = deviation
             max_dev_index = index
 
-    m = s_mid[0] * data_per_frame + max_dev_index 
+    m = s_mid[0] * data_per_frame + max_dev_index
 
-    # Set start_point to m−T/2, where T is total duration
-    start_point = math.floor(m - (num_packets)/2)
-    start_point = max(start_point, 0)
+    # # Set start_point to m−T/2, where T is total duration
+    # start_point = math.floor(m - (num_packets)/2)
+    # start_point = max(start_point, 0)
 
-    # Set end_point to m+T/2, where T is total duration
-    end_point = math.floor(m + (num_packets)/2)
-    end_point = min(end_point, num_packets)
+    # # Set end_point to m+T/2, where T is total duration
+    # end_point = math.floor(m + (num_packets)/2)
+    # end_point = min(end_point, num_packets)
+
+    # print("Midpoint = ", m)
+    # print("Numpackets = ", num_packets)
+    # get a 4 second window from mid
+    if num_packets >= 4000:
+        start_point = m - 2000
+        end_point = m + 2000
+        carry = 0
+
+        if start_point < 0:
+            carry = abs(start_point)
+            start_point = 0
+            end_point += carry
+
+        if end_point >= num_packets:
+            carry = end_point - num_packets
+            end_point = num_packets
+            if (start_point - carry) >= 0:
+                start_point -= carry
+    else:
+        start_point = 0
+        end_point = num_packets
+
+    # print("start = ", start_point)
+    # print("end = ", end_point)
 
     # Get original data with silence removed
     trimmed_output = original[selected_subcarrier][start_point:end_point]
@@ -221,14 +246,14 @@ def perform_fft():
 # Feature extraction shit here.
 # num_packets = len(silenced_data[selected_subcarrier])
 # data_per_window = 100
-# total_num_windows = math.floor(num_packets/data_per_window) 
+# total_num_windows = math.floor(num_packets/data_per_window)
 
 # # Split data into windows of 100 packets / 0.1 seconds
 # windows = []
 # for window in range(int(total_num_windows)):
 #     cur_index = data_per_window*window
 #     seq = silenced_data[selected_subcarrier][cur_index : cur_index+data_per_window]
-    
+
 #     windows.append(seq)
 
 # #print(windows)
@@ -239,7 +264,7 @@ def perform_fft():
 #         my_array = np.array(arr)
 #         #print(my_array)
 #         return float("{0:.2f}".format((((my_array[:-1] * my_array[1:]) < 0).sum())/len(arr)))
-    
+
 # def getMeanCrossingRate(arr):
 #     #print(arr)
 #     return getZeroCrossingRate(np.array(arr) - np.mean(arr))
@@ -247,19 +272,19 @@ def perform_fft():
 # For each window, gather its features
 # for each_window in windows:
 #     # time domain features
-    
+
 #     weight_each_window = []
-    
+
 #     mean = sum(each_window) / len(each_window)
 #     max_val = max(each_window)
 #     min_val = min(each_window)
 #     skewness = skew(each_window)
 #     kurtosis_val = kurtosis(each_window)
 #     variance = np.var(each_window)
-    
+
 #     # !!! MEAN crossing rate shit doesnt work !!!
 # #     mean_crossing_rate = getMeanCrossingRate(each_window)
-    
+
 #     weight_each_window.append(mean)
 #     weight_each_window.append(max_val)
 #     weight_each_window.append(min_val)
@@ -267,7 +292,7 @@ def perform_fft():
 #     weight_each_window.append(kurtosis_val)
 #     weight_each_window.append(variance)
 # #     weight_each_window.append(mean_crossing_rate)
-    
+
 #     features.append(weight_each_window)
 
 # print(mean)
@@ -298,7 +323,7 @@ def extract_features():
     for subcarrier in range(len(silenced_data)):
         num_packets = len(silenced_data[subcarrier])
         data_per_window = 100
-        total_num_windows = math.floor(num_packets/data_per_window) 
+        total_num_windows = math.floor(num_packets/data_per_window)
 
         # Split data into windows of 100 packets / 0.1 seconds
         windows = []
@@ -340,10 +365,10 @@ def extract_features():
 #     silenced_csi_signal = silenced_data[subcarrier]
 #     mean_silenced = sum(silenced_csi_signal)/len(silenced_csi_signal)
 #     shifted_data = [i - mean_silenced for i in silenced_csi_signal]
-    
+
 #     num_packets = len(shifted_data)
 #     data_per_window = 100
-#     total_num_windows = math.floor(num_packets/data_per_window) 
+#     total_num_windows = math.floor(num_packets/data_per_window)
 
 #     # Split data into windows of 100 packets / 0.1 seconds
 #     windows = []
@@ -375,83 +400,66 @@ def extract_features():
 
 #         features.append(weight_each_window)
 
-
+def empty_lists():
+    global original
+    global silenced_data
+    global features
+    original = []
+    silenced_data = []
+    features = []
 
 def export_sushant_data():
 # Export Sushant data
     sushant_data = {
-        'feature_names': [
-            'mean',
-            'max_val',
-            'min_val',
-            'skewness',
-            'kurtosis_val',
-            'variance'
-        ],
         'features': features,
-        'target_name': 'Sushant',
-        'target': 0
     }
 
     with open('sushant_data.json', 'w') as outfile:
         json.dump(sushant_data, outfile, indent=4)
 
+    empty_lists()
+
 def export_soham_data():
     # Export Soham data
     soham_data = {
-        'feature_names': [
-            'mean',
-            'max_val',
-            'min_val',
-            'skewness',
-            'kurtosis_val',
-            'variance'
-        ],
         'features': features,
-        'target_name': 'Soham',
-        'target': 1
     }
 
     with open('soham_data.json', 'w') as outfile:
         json.dump(soham_data, outfile, indent=4)
 
+    empty_lists()
+
 def export_vintony_data():
 # Export Vintony data
     vintony_data = {
-        'feature_names': [
-            'mean',
-            'max_val',
-            'min_val',
-            'skewness',
-            'kurtosis_val',
-            'variance'
-        ],
         'features': features,
-        'target_name': 'Vintony',
-        'target': 2
+
     }
 
     with open('vintony_data.json', 'w') as outfile:
         json.dump(vintony_data, outfile, indent=4)
 
+    empty_lists()
 
-    # # Export Environment data
-    # environment_data = {
-    #     'feature_names': [
-    #         'mean',
-    #         'max_val',
-    #         'min_val',
-    #         'skewness',
-    #         'kurtosis_val',
-    #         'variance'
-    #     ],
-    #     'features': features,
-    #     'target_name': 'Environment',
-    #     'target': 3
-    # }
 
-    # with open('environment_data.json', 'w') as outfile:
-    #     json.dump(environment_data, outfile, indent=4)
+# # Export Environment data
+# environment_data = {
+#     'feature_names': [
+#         'mean',
+#         'max_val',
+#         'min_val',
+#         'skewness',
+#         'kurtosis_val',
+#         'variance'
+#     ],
+#     'features': features,
+#     'target_name': 'Environment',
+#     'target': 3
+# }
+
+# with open('environment_data.json', 'w') as outfile:
+#     json.dump(environment_data, outfile, indent=4)
 
 
 def get_data():
@@ -459,10 +467,10 @@ def get_data():
     # Preprocess for building classifier
     with open('sushant_data.json') as json_file:
         sushant = json.load(json_file)
-        
+
     with open('soham_data.json') as json_file:
         soham = json.load(json_file)
-        
+
     with open('vintony_data.json') as json_file:
         vintony = json.load(json_file)
 
@@ -483,6 +491,10 @@ def get_data():
     csi_data['target'][0:len(sushant['features'])] = 0
     csi_data['target'][len(sushant['features']): len(soham['features'])] = 1
     csi_data['target'][len(soham['features']): data_length] = 2
+
+    print("Number of 2s: ", len(vintony['features']))
+    print("Number of 1s: ", len(soham['features']))
+    print("Number of 0s: ", len(sushant['features']))
 
     data = pd.DataFrame({
             'mean': csi_data['features'][:,0],
