@@ -366,5 +366,5 @@ def get_data():
 
     # Split dataset into training set and test set
     # x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3) # 70% training and 30% test
-
-    return X, y
+    return train_test_split(X, y, test_size=0.3)
+    # return X, y
