@@ -171,7 +171,7 @@ def extract_features(silenced_data):
     return features
 
 if __name__ == "__main__":
-    matlab_file = './NEW/vin/converted/log_2.mat'
+    matlab_file = './NEW/soham/converted/log_2.mat'
     silenced_data = get_silence_remove(matlab_file)
     features = extract_features(silenced_data)
     # print(features)
