@@ -352,9 +352,9 @@ def get_data():
     csi_data['target'][len(sushant['features']): len(soham['features'])+len(sushant['features'])] = 1
     csi_data['target'][len(soham['features']) + len(sushant['features']): data_length] = 2
 
-    print("Number of 2s: ", len(vintony['features']))
-    print("Number of 1s: ", len(soham['features']))
-    print("Number of 0s: ", len(sushant['features']))
+    # print("Number of 2s: ", len(vintony['features']))
+    # print("Number of 1s: ", len(soham['features']))
+    # print("Number of 0s: ", len(sushant['features']))
 
     data = pd.DataFrame({
             'mean': csi_data['features'][:,0],

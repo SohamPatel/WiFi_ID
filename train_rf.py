@@ -2,6 +2,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
 import pandas as pd
 import Silence_combined
+import scipy.io as sio
 
 def get_data():
     matlab_files = ['./NEW/sushant/separated/separated_1.mat', './NEW/soham/separated/separated_1.mat', './NEW/vin/separated/separated_1.mat']
@@ -48,7 +49,6 @@ def get_data():
 
     return Silence_combined.get_data()
 
-import scipy.io as sio
 def output_to_mat(filename, data):
     data_mat = {'M': data}
     sio.savemat(filename, data_mat)

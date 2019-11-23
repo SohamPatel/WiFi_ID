@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import numpy as np
 import torch
 import math
+import scipy.io as sio
 
 import Silence_combined
 
@@ -12,16 +13,17 @@ class FeedForward(nn.Module):
         super().__init__()
 
         self.fc1 = nn.Linear(6, 64)
-        self.fc2 = nn.Linear(64, 10)
-        self.fc3 = nn.Linear(10, 3)
-        #self.fc4 = nn.Linear(10, 3)
+        self.fc2 = nn.Linear(64, 32)
+        self.fc3 = nn.Linear(32, 10)
+        self.fc4 = nn.Linear(10, 3)
+        # self.fc5 = nn.Linear(10, 3)
 
     def forward(self, x):
 
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        #x = self.fc4(x)
+        x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
 
         x = F.log_softmax(x, dim=1)
 
@@ -95,79 +97,103 @@ class NNModel:
 
         return round(correct/total, 4)
 
-def get_train_data():
-    # matlab_files = ['./NEW/sushant/converted/log_1.mat', './NEW/soham/converted/log_1.mat', './NEW/vin/converted/log_1.mat']
+def train_network(data):
+    model =  FeedForward() # Change during development
+    epochs = 50
 
+    print(f"Training {model.__class__.__name__}...")
+    m = NNModel(model, 0.0009, data)
+
+    for e in range(epochs):
+        print(f"Epoch: {e}/{epochs}")
+        m.train_epoch()
+        accuracy = m.eval()
+        print(f"Test accuracy: {accuracy}")
+
+
+def output_to_mat(filename, data):
+    data_mat = {'M': data}
+    sio.savemat(filename, data_mat)
+
+def export_silenced():
     # Export sushant's data.
-    sushant_features = []
     for i in range(1,6):
         Silence_combined.load_mat_file('./NEW/sushant/converted/log_'+ str(i) + '.mat')
-        features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
+        silenced_data = Silence_combined.silence_removal(Silence_combined.butterworth())
+        output_to_mat('./NEW/sushant/silenced/silenced_'+ str(i) +'.mat', silenced_data)
+
+    # Export soham's data.
+    for i in range(1,6):
+        Silence_combined.load_mat_file('./NEW/soham/converted/log_'+ str(i) + '.mat')
+        silenced_data = Silence_combined.silence_removal(Silence_combined.butterworth())
+        output_to_mat('./NEW/soham/silenced/silenced_'+ str(i) +'.mat', silenced_data)
+
+    # Export vintony's data.
+    for i in range(1,6):
+        Silence_combined.load_mat_file('./NEW/vin/converted/log_'+ str(i) + '.mat')
+        silenced_data = Silence_combined.silence_removal(Silence_combined.butterworth())
+        output_to_mat('./NEW/vin/silenced/silenced_'+ str(i) +'.mat', silenced_data)
+
+def get_data():
+    #matlab_files = ['./NEW/sushant/separated/separated_1.mat', './NEW/soham/separated/separated_1.mat', './NEW/vin/separated/separated_1.mat']
+
+     # Export sushant's data.
+
+    sushant_features = []
+    for i in range(1,2):
+        Silence_combined.load_mat_file('./NEW/sushant/separated/separated_'+ str(i) + '.mat')
+        features = Silence_combined.extract_features()
         sushant_features.extend(features)
     Silence_combined.export_sushant_data(sushant_features)
 
-    # Export soham's data.
+
     soham_features = []
-    for i in range(1,6):
-        Silence_combined.load_mat_file('./NEW/soham/converted/log_'+ str(i) + '.mat')
-        features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
+    for i in range(1,2):
+        Silence_combined.load_mat_file('./NEW/soham/separated/separated_'+ str(i) + '.mat')
+        features = Silence_combined.extract_features()
         soham_features.extend(features)
     Silence_combined.export_soham_data(soham_features)
 
+
     # Export vintony's data.
     vintony_features = []
-    for i in range(1,6):
-        Silence_combined.load_mat_file('./NEW/vin/converted/log_'+ str(i) + '.mat')
-        features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
+    for i in range(1,2):
+        Silence_combined.load_mat_file('./NEW/vin/separated/separated_'+ str(i) + '.mat')
+        features = Silence_combined.extract_features()
         vintony_features.extend(features)
     Silence_combined.export_vintony_data(vintony_features)
 
     return Silence_combined.get_data()
 
-def get_test_data():
-    # matlab_files = ['./NEW/sushant/converted/log_1.mat', './NEW/soham/converted/log_1.mat', './NEW/vin/converted/log_1.mat']
+# def get_test_data():
+#     # matlab_files = ['./NEW/sushant/converted/log_1.mat', './NEW/soham/converted/log_1.mat', './NEW/vin/converted/log_1.mat']
 
-    # Export sushant's data.
-    Silence_combined.load_mat_file('./Sushant_CSI/1.3m/forward_converted/log_1.mat')
-    features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
-    Silence_combined.export_sushant_data(features)
+#     # Export sushant's data.
+#     Silence_combined.load_mat_file('./Sushant_CSI/1.3m/forward_converted/log_1.mat')
+#     features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
+#     Silence_combined.export_sushant_data(features)
 
-    # Export soham's data.
-    Silence_combined.load_mat_file('./Soham_CSI/converted/log_1.mat')
-    features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
-    Silence_combined.export_soham_data(features)
+#     # Export soham's data.
+#     Silence_combined.load_mat_file('./Soham_CSI/converted/log_1.mat')
+#     features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
+#     Silence_combined.export_soham_data(features)
 
-    # Export vintony's data.
-    Silence_combined.load_mat_file('./Vintony_CSI/converted/log_1.mat')
-    features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
-    Silence_combined.export_vintony_data(features)
+#     # Export vintony's data.
+#     Silence_combined.load_mat_file('./Vintony_CSI/converted/log_1.mat')
+#     features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
+#     Silence_combined.export_vintony_data(features)
 
-    return Silence_combined.get_data()
-
-def train_network(data):
-    model =  FeedForward() # Change during development
-    epochs = 10
-
-    print(f"Training {model.__class__.__name__}...")
-    m = NNModel(model, 0.003, data)
-
-    for e in range(epochs):
-        print(f"Epoch: {e}/{epochs}")
-        m.train_epoch()
-    accuracy = m.eval()
-    print(f"Test accuracy: {accuracy}")
-
+#     return Silence_combined.get_data()
 
 
 if __name__ == "__main__":
 
     print("Conducting CSI computation and loading variables..")
-    train_data = get_train_data()
-    test_data = get_test_data()
+    x_train, x_test, y_train, y_test = get_data()
     print("CSI data loaded batching variables...")
 
-    x_train = torch.tensor(train_data[0].values)
-    y_train = torch.tensor(train_data[1].values)
+    x_train = torch.tensor(x_train.values)
+    y_train = torch.tensor(y_train.values)
 
     num_2 = 0
     num_1 = 0
@@ -186,8 +212,8 @@ if __name__ == "__main__":
     print("Number of 1s: ", num_1)
     print("Number of 0s: ", num_0)
 
-    x_test = torch.tensor(test_data[0].values)
-    y_test = torch.tensor(test_data[1].values)
+    x_test = torch.tensor(x_test.values)
+    y_test = torch.tensor(y_test.values)
 
     # batching the input to 10 TRAIN DATA
     last_num = math.floor(x_train.shape[0]/10)*10
