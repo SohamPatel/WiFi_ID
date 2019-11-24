@@ -7,10 +7,12 @@ from numpy.fft import fft, fftfreq, ifft
 from scipy.stats import kurtosis, skew, mode
 from joblib import load
 import pandas as pd
+# import matlab.engine
 
 import torch
 
 from Wifi_neural import FeedForward
+import Silence_combined
 
 def get_silence_remove(matlab_file):
     original = [] # Dataset with csi streams, filtered
@@ -170,10 +172,19 @@ def extract_features(silenced_data):
 
     return features
 
+def output_to_mat(filename, data):
+    data_mat = {'M': data}
+    sio.savemat(filename, data_mat)
+
 if __name__ == "__main__":
-    matlab_file = './NEW/soham/converted/log_2.mat'
-    silenced_data = get_silence_remove(matlab_file)
-    features = extract_features(silenced_data)
+    # matlab_file = './NEW/soham/converted/log_2.mat'
+    # silenced_data = get_silence_remove(matlab_file)
+    # output_to_mat('./out/silenced.mat', silenced_data)
+    # eng = matlab.engine.start_matlab()
+    # eng.signal_separation(nargout=0)
+    # eng.quit()
+    Silence_combined.load_mat_file('./SELECTIVE/sushant/separated_5_50/separated_3.mat')
+    features = Silence_combined.extract_features()
     # print(features)
     # print(np.array(features))
 
@@ -189,28 +200,29 @@ if __name__ == "__main__":
 
     # features
     X = data[['mean', 'max_val', 'min_val', 'skewness', 'kurtosis_val', 'variance']]
-    X = torch.tensor(X.values)
+    # X = torch.tensor(X.values)
 
-    model = torch.load('./model.pth')
-    #model.load_state_dict(torch.load('./model.pth'))
-    model.eval()
+    # model = torch.load('./model.pth')
+    # #model.load_state_dict(torch.load('./model.pth'))
+    # model.eval()
 
-    last_num = math.floor(X.shape[0]/10)*10
-    X = X[:last_num]
-    X = X.view(X.shape[0], 1, X.shape[1])
-    X = X.view(math.floor(X.shape[0]/10), 10, 6)
+    # last_num = math.floor(X.shape[0]/10)*10
+    # X = X[:last_num]
+    # X = X.view(X.shape[0], 1, X.shape[1])
+    # X = X.view(math.floor(X.shape[0]/10), 10, 6)
 
-    X = X[200]
-    log_ps = model(X.float())
+    # X = X[50]
+    # log_ps = model(X.float())
 
-    predictions = []
-    for idx, i in enumerate(log_ps):
-        print(i)
-        predictions.append(torch.argmax(i))
+    # predictions = []
+    # for idx, i in enumerate(log_ps):
+    #     print(i)
+    #     predictions.append(torch.argmax(i))
 
-    print(predictions)
+    # print(predictions)
     #load trained model
-    # clf = load("CSI_MODEL.joblib")
-    # output = clf.predict(X)
-    # print(output)
-    # print(mode(output))
+    clf = load("CSI_MODEL_SEP.joblib")
+    output = clf.predict(X)
+    labels = ['Sushant', 'Soham', 'Vintony']
+    a, c = mode(output)
+    print(labels[int(a[0])])

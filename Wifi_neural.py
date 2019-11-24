@@ -135,55 +135,31 @@ def export_silenced():
         output_to_mat('./NEW/vin/silenced/silenced_'+ str(i) +'.mat', silenced_data)
 
 def get_data():
-    #matlab_files = ['./NEW/sushant/separated/separated_1.mat', './NEW/soham/separated/separated_1.mat', './NEW/vin/separated/separated_1.mat']
-
-     # Export sushant's data.
-
     sushant_features = []
     for i in range(1,2):
-        Silence_combined.load_mat_file('./NEW/sushant/separated/separated_'+ str(i) + '.mat')
+        Silence_combined.load_mat_file('./SELECTIVE/sushant/separated_5_50/separated_'+ str(i) + '.mat')
         features = Silence_combined.extract_features()
         sushant_features.extend(features)
-    Silence_combined.export_sushant_data(sushant_features)
-
 
     soham_features = []
     for i in range(1,2):
-        Silence_combined.load_mat_file('./NEW/soham/separated/separated_'+ str(i) + '.mat')
+        Silence_combined.load_mat_file('./SELECTIVE/soham/separated_5_50/separated_'+ str(i) + '.mat')
         features = Silence_combined.extract_features()
         soham_features.extend(features)
-    Silence_combined.export_soham_data(soham_features)
 
-
-    # Export vintony's data.
     vintony_features = []
     for i in range(1,2):
-        Silence_combined.load_mat_file('./NEW/vin/separated/separated_'+ str(i) + '.mat')
+        Silence_combined.load_mat_file('./SELECTIVE/vin/separated_5_50/separated_'+ str(i) + '.mat')
         features = Silence_combined.extract_features()
         vintony_features.extend(features)
-    Silence_combined.export_vintony_data(vintony_features)
 
-    return Silence_combined.get_data()
+    features = {
+        "sushant": sushant_features,
+        "soham": soham_features,
+        "vintony": vintony_features
+    }
 
-# def get_test_data():
-#     # matlab_files = ['./NEW/sushant/converted/log_1.mat', './NEW/soham/converted/log_1.mat', './NEW/vin/converted/log_1.mat']
-
-#     # Export sushant's data.
-#     Silence_combined.load_mat_file('./Sushant_CSI/1.3m/forward_converted/log_1.mat')
-#     features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
-#     Silence_combined.export_sushant_data(features)
-
-#     # Export soham's data.
-#     Silence_combined.load_mat_file('./Soham_CSI/converted/log_1.mat')
-#     features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
-#     Silence_combined.export_soham_data(features)
-
-#     # Export vintony's data.
-#     Silence_combined.load_mat_file('./Vintony_CSI/converted/log_1.mat')
-#     features = Silence_combined.extract_features(Silence_combined.silence_removal(Silence_combined.butterworth()))
-#     Silence_combined.export_vintony_data(features)
-
-#     return Silence_combined.get_data()
+    return Silence_combined.get_data(features)
 
 
 if __name__ == "__main__":

@@ -5,49 +5,48 @@ import Silence_combined
 import scipy.io as sio
 
 def get_data():
-    matlab_files = ['./SELECTIVE/sushant/separated_1.mat', './SELECTIVE/soham/separated_1.mat', './SELECTIVE/vin/separated_1.mat']
-
-    # Export sushant's data.
-    sushant_features = []
-    for i in range(1,6):
-        Silence_combined.load_mat_file('./SELECTIVE/sushant/separated_'+ str(i) + '.mat')
-        features = Silence_combined.extract_features()
-        sushant_features.extend(features)
-    Silence_combined.export_sushant_data(sushant_features)
-
-    # Export soham's data.
-    soham_features = []
-    for i in range(1,6):
-        Silence_combined.load_mat_file('./SELECTIVE/soham/separated_'+ str(i) + '.mat')
-        features = Silence_combined.extract_features()
-        soham_features.extend(features)
-    Silence_combined.export_soham_data(soham_features)
-
-    # Export vintony's data.
-    vintony_features = []
-    for i in range(1,6):
-        Silence_combined.load_mat_file('./SELECTIVE/vin/separated_'+ str(i) + '.mat')
-        features = Silence_combined.extract_features()
-        vintony_features.extend(features)
-    Silence_combined.export_vintony_data(vintony_features)
-
+    matlab_files = ['./SELECTIVE/sushant/separated_5_50/separated_3.mat', './SELECTIVE/soham/separated_5_50/separated_1.mat', './SELECTIVE/vin/separated_5_50/separated_1.mat']
 
     # # Export sushant's data.
-    # Silence_combined.load_mat_file(matlab_files[0])
-    # features = Silence_combined.extract_features()
-    # Silence_combined.export_sushant_data(features)
+    # sushant_features = []
+    # for i in range(1,6):
+    #     Silence_combined.load_mat_file('./SELECTIVE/sushant/separated_'+ str(i) + '.mat')
+    #     features = Silence_combined.extract_features()
+    #     sushant_features.extend(features)
 
     # # Export soham's data.
-    # Silence_combined.load_mat_file(matlab_files[1])
-    # features = Silence_combined.extract_features()
-    # Silence_combined.export_soham_data(features)
+    # soham_features = []
+    # for i in range(1,6):
+    #     Silence_combined.load_mat_file('./SELECTIVE/soham/separated_'+ str(i) + '.mat')
+    #     features = Silence_combined.extract_features()
+    #     soham_features.extend(features)
 
     # # Export vintony's data.
-    # Silence_combined.load_mat_file(matlab_files[2])
-    # features = Silence_combined.extract_features()
-    # Silence_combined.export_vintony_data(features)
+    # vintony_features = []
+    # for i in range(1,6):
+    #     Silence_combined.load_mat_file('./SELECTIVE/vin/separated_'+ str(i) + '.mat')
+    #     features = Silence_combined.extract_features()
+    #     vintony_features.extend(features)
 
-    return Silence_combined.get_data()
+    # Export sushant's data.
+    Silence_combined.load_mat_file(matlab_files[0])
+    sushant_features = Silence_combined.extract_features()
+
+    # Export soham's data.
+    Silence_combined.load_mat_file(matlab_files[1])
+    soham_features = Silence_combined.extract_features()
+
+    # Export vintony's data.
+    Silence_combined.load_mat_file(matlab_files[2])
+    vintony_features = Silence_combined.extract_features()
+
+    features = {
+        "sushant": sushant_features,
+        "soham": soham_features,
+        "vintony": vintony_features
+    }
+
+    return Silence_combined.get_data(features)
 
 def output_to_mat(filename, data):
     data_mat = {'M': data}

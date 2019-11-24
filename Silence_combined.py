@@ -274,33 +274,33 @@ def extract_features():
             features.append(weight_each_window)
     return features
 
-def export_sushant_data(features):
-# Export Sushant data
-    sushant_data = {
-        'features': features,
-    }
+# def export_sushant_data(features):
+# # Export Sushant data
+#     sushant_data = {
+#         'features': features,
+#     }
 
-    with open('sushant_data.json', 'w') as outfile:
-        json.dump(sushant_data, outfile, indent=4)
+#     with open('sushant_data.json', 'w') as outfile:
+#         json.dump(sushant_data, outfile, indent=4)
 
-def export_soham_data(features):
-    # Export Soham data
-    soham_data = {
-        'features': features,
-    }
+# def export_soham_data(features):
+#     # Export Soham data
+#     soham_data = {
+#         'features': features,
+#     }
 
-    with open('soham_data.json', 'w') as outfile:
-        json.dump(soham_data, outfile, indent=4)
+#     with open('soham_data.json', 'w') as outfile:
+#         json.dump(soham_data, outfile, indent=4)
 
-def export_vintony_data(features):
-# Export Vintony data
-    vintony_data = {
-        'features': features,
+# def export_vintony_data(features):
+# # Export Vintony data
+#     vintony_data = {
+#         'features': features,
 
-    }
+#     }
 
-    with open('vintony_data.json', 'w') as outfile:
-        json.dump(vintony_data, outfile, indent=4)
+#     with open('vintony_data.json', 'w') as outfile:
+#         json.dump(vintony_data, outfile, indent=4)
 
 
 # # Export Environment data
@@ -322,19 +322,14 @@ def export_vintony_data(features):
 #     json.dump(environment_data, outfile, indent=4)
 
 
-def get_data():
+def get_data(features):
 
     # Preprocess for building classifier
-    with open('sushant_data.json') as json_file:
-        sushant = json.load(json_file)
+    sushant = features["sushant"]
+    soham = features["soham"]
+    vintony = features["vintony"]
 
-    with open('soham_data.json') as json_file:
-        soham = json.load(json_file)
-
-    with open('vintony_data.json') as json_file:
-        vintony = json.load(json_file)
-
-    data_length = len(sushant['features']) + len(soham['features']) + len(vintony['features'])
+    data_length = len(sushant) + len(soham) + len(vintony)
     csi_data ={
         'feature_names': [
             'mean',
@@ -344,17 +339,17 @@ def get_data():
             'kurtosis_val',
             'variance'
         ],
-        'features': np.array(sushant['features'] + soham['features'] + vintony['features']),
+        'features': np.array(sushant + soham + vintony),
         'target_names': ['Sushant', 'Soham', 'Vintony'],
         'target': np.empty(data_length)
     }
-    csi_data['target'][0:len(sushant['features'])] = 0
-    csi_data['target'][len(sushant['features']): len(soham['features'])+len(sushant['features'])] = 1
-    csi_data['target'][len(soham['features']) + len(sushant['features']): data_length] = 2
+    csi_data['target'][0:len(sushant)] = 0
+    csi_data['target'][len(sushant): len(soham)+len(sushant)] = 1
+    csi_data['target'][len(soham) + len(sushant): data_length] = 2
 
-    # print("Number of 2s: ", len(vintony['features']))
-    # print("Number of 1s: ", len(soham['features']))
-    # print("Number of 0s: ", len(sushant['features']))
+    # print("Number of 2s: ", len(vintony))
+    # print("Number of 1s: ", len(soham))
+    # print("Number of 0s: ", len(sushant))
 
     data = pd.DataFrame({
             'mean': csi_data['features'][:,0],
