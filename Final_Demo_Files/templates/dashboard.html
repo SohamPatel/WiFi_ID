@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>WiFi-ID</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--===============================================================================================-->	
+	<link rel="icon" type="image/png" href="{{url_for('static', filename='images/icons/favicon.ico')}}"/>
+<!--===============================================================================================-->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css">
+</head>
+<body>
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<a class="navbar-brand" href="/">Wifi-ID</a>
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse" id="navbarText">
+			<ul class="navbar-nav mr-auto">
+				<li class="nav-item active font-weight-bold">
+					<a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+				</li>
+			</ul>
+		</div>
+	</nav>
+	<div class="container body-container">
+		<div class="page-title-container">
+			<h2 class="text-white font-weight-bold page-title">WiFi-ID - Human Identification</h2><br><br>
+		</div>
+		<div class="jumbotron card card-body identification-container">
+			<h4 class="card-title">Last Identification</h4>
+			{% if identifications|length > 0 %}			
+				<div class="card-text">
+					<span class="last-identification">{{identifications[0].person}}</span><br>
+					<span class="last-time">on <span class="identification-time">{{identifications[0].time}}<span></span>
+				</div>
+			{% else %}
+				<div class="card-text">
+					No identifications
+				</div>
+			{% endif %}
+		</div>
+		<div class="jumbotron card card-body identification-container">
+			<h4 class="card-title">Previous Identifications</h4>
+			<table class="table">
+				<thead class="thead-dark">
+					<tr>
+						<th scope="col">Person</th>
+						<th scope="col">Time</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for identification in identifications[1:] %}
+					<tr>
+						<td>{{identification.person}}</td>
+						<td class="identification-time">{{identification.time}}</td>
+
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+<!--===============================================================================================-->	
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<!--===============================================================================================-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<!--===============================================================================================-->
+<!--===============================================================================================-->
+<script>
+$(document).ready(function() {
+	let timestamps = document.getElementsByClassName("identification-time");
+	Array.prototype.forEach.call(timestamps, function(el) {
+		let temp = parseInt(el.innerText);
+		el.innerText = moment.unix(temp).local();
+	});
+});
+</script>
+<style>
+body {
+	background: #fc4a1a;  /* fallback for old browsers */
+	background: -webkit-linear-gradient(to right, #f7b733, #fc4a1a);  /* Chrome 10-25, Safari 5.1-6 */
+	background: linear-gradient(to right, #f7b733, #fc4a1a); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+.page-title-container {
+	width: 100%;
+	text-align: center;
+	margin-top: 50px;
+}
+.page-title {
+	border-bottom: 2px solid white;
+	padding-bottom: 40px;
+}
+
+.identification-container {
+	background-color: white;
+}
+
+.last-identification {
+	font-size: 30px;
+	font-weight: bold;
+}
+
+.last-time {
+	font-size: 20px;
+}
+
+.card-title {
+	margin-bottom: 20px;
+}
+
+@media screen and (min-width: 426px) {
+	.body-container {
+		width: 85%;
+	}
+}
+
+@media screen and (min-width: 769px) {
+	.body-container {
+		width: 70%;
+	}
+}
+</style>
+</body>
+</html>
